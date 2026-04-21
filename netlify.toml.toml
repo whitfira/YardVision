@@ -1,0 +1,13 @@
+# ============================================================
+# netlify.toml — Netlify site configuration
+# Place this file in the ROOT of your project folder
+# ============================================================
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+[functions.generate-concept]
+  timeout = 60
