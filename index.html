@@ -378,7 +378,7 @@
         const mediaTypePart  = base64Parts[0].match(/data:(.*);base64/);
         const imageMediaType = mediaTypePart ? mediaTypePart[1] : 'image/jpeg';
 
-        const response = await fetch('/.netlify/functions/generate-concept', {
+        const response = await fetch('/api/generate-concept', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
