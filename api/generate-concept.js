@@ -69,12 +69,14 @@ CLIENT PROJECT DETAILS:
 - Client Description: ${description || 'No additional description provided.'}
 
 INSTRUCTIONS FOR YOUR PROMPT:
-1. Reference the exact yard, home exterior, camera angle, and lighting conditions visible in the uploaded photo — the house must look identical
-2. Describe the finished project in rich detail, using materials, textures, plant species, and design elements that are authentic to the "${stylePreference}" style
-3. Scale the design scope and material quality to the "${budgetTier}" budget — for example, under $25K means simpler finishes and plantings; $200K+ means premium stone, custom water features, full outdoor living areas
-4. The scene should be: photorealistic, architectural visualization quality, golden hour or bright natural daylight, professionally landscaped, no people, no text, no watermarks
-5. Write the prompt as a single detailed paragraph — do not use bullet points or labels
-6. Start your response directly with the prompt text — no preamble, no explanation`,
+1. This is CRITICAL — the generated image must show the EXACT SAME house, yard, camera angle, perspective, and surrounding environment as the uploaded photo. Do NOT invent a new scene, new house, new yard, or new setting under any circumstances.
+2. The house exterior, walls, windows, roof, fencing, and all existing structures must appear IDENTICAL to the uploaded photo.
+3. ONLY add the requested project elements — do not change anything else about the scene.
+4. Match the exact lighting, time of day, and sky conditions from the uploaded photo.
+5. Describe the finished project in rich detail using materials, textures, plant species, and design elements authentic to the "${stylePreference}" style.
+6. Scale design scope and material quality to the "${budgetTier}" budget.
+7. Photorealistic, architectural visualization quality, no people, no text, no watermarks.
+8. Write as a single detailed paragraph — no bullet points, no labels, no preamble.,
               },
             ],
           },
