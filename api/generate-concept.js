@@ -2,6 +2,9 @@
 // Yard Vision — Vercel Serverless Function
 // File location in GitHub repo: api/generate-concept.js
 //
+// Uses gpt-image-1 edits endpoint which takes the actual uploaded
+// yard photo as input and modifies it — true photo-based generation
+//
 // Required environment variables (set in Vercel dashboard):
 //   ANTHROPIC_API_KEY   — from console.anthropic.com
 //   OPENAI_API_KEY      — from platform.openai.com
@@ -30,8 +33,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error — API keys not set' });
   }
 
-  // ── STEP 1: Call Anthropic to build a rich image generation prompt ──
-  let imageGenPrompt;
+  // ── STEP 1: Call Anthropic to build a rich edit prompt ──
+  let editPrompt;
   try {
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
               },
               {
                 type: 'text',
-                text: 'You are an expert landscape architecture visualization prompt engineer.\n\nI am going to show you a photo of a client\'s yard and home, along with their project details. Your job is to write a single, highly detailed image generation prompt (for DALL-E 3) that will produce a photorealistic architectural visualization of the finished project in that exact yard.\n\nCLIENT PROJECT DETAILS:\n- Project Type: ' + projectType + '\n- Style Preference: ' + stylePreference + '\n- Budget Tier: ' + budgetTier + '\n- Client Description: ' + (description || 'No additional description provided.') + '\n\nCRITICAL INSTRUCTIONS FOR YOUR PROMPT:\n1. The generated image MUST show the EXACT SAME house, yard, camera angle, perspective, and surrounding environment as the uploaded photo. Do NOT invent a new scene, new house, new yard, or new setting under any circumstances.\n2. The house exterior, walls, windows, roof, fencing, and all existing structures must appear IDENTICAL to the uploaded photo.\n3. ONLY add the requested project elements — do not change anything else about the scene.\n4. Match the exact lighting, time of day, and sky conditions from the uploaded photo.\n5. Describe the finished project in rich detail using materials, textures, plant species, and design elements authentic to the ' + stylePreference + ' style.\n6. Scale design scope and material quality to the ' + budgetTier + ' budget — under $25K means simpler finishes; $200K+ means premium stone, custom water features, full outdoor living areas.\n7. Photorealistic, architectural visualization quality, no people, no text, no watermarks.\n8. Write as a single detailed paragraph — no bullet points, no labels, no preamble. Start your response directly with the prompt text.',
+                text: 'You are an expert landscape architecture visualization prompt engineer.\n\nI am going to show you a photo of a client\'s yard and home. Your job is to write a detailed image EDITING prompt for gpt-image-1 that will modify this exact photo to show the finished project.\n\nCLIENT PROJECT DETAILS:\n- Project Type: ' + projectType + '\n- Style Preference: ' + stylePreference + '\n- Budget Tier: ' + budgetTier + '\n- Client Description: ' + (description || 'No additional description provided.') + '\n\nCRITICAL INSTRUCTIONS:\n1. This is an IMAGE EDIT — the model will modify the actual uploaded photo directly. Keep the house, structures, camera angle, sky, and all existing elements IDENTICAL.\n2. Only describe what should be ADDED or CHANGED in the yard area — do not describe the house or existing elements.\n3. Be extremely specific about materials, textures, plant species, and design elements authentic to the ' + stylePreference + ' style.\n4. Scale the project scope to the ' + budgetTier + ' budget.\n5. Photorealistic, no people, no text, no watermarks.\n6. Write as a single concise paragraph under 800 characters. Start directly with the edit description — no preamble.',
               },
             ],
           },
@@ -72,30 +75,68 @@ export default async function handler(req, res) {
     }
 
     const anthropicData = await anthropicResponse.json();
-    imageGenPrompt = anthropicData.content[0].text.trim();
+    editPrompt = anthropicData.content[0].text.trim();
+    console.log('Edit prompt:', editPrompt);
 
   } catch (err) {
     console.error('Anthropic call failed:', err);
     return res.status(500).json({ error: 'Unexpected error calling Anthropic API.' });
   }
 
-  // ── STEP 2: Call OpenAI DALL-E 3 with the expanded prompt ──
+  // ── STEP 2: Call gpt-image-1 EDITS endpoint with the actual photo ──
   let generatedImageUrl;
   try {
-    const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
+    // Convert base64 to binary buffer for multipart upload
+    const imageBuffer   = Buffer.from(imageBase64, 'base64');
+    const mimeType      = imageMediaType || 'image/jpeg';
+    const extension     = mimeType.split('/')[1] || 'jpg';
+    const fileName      = 'yard.' + extension;
+
+    // Build multipart/form-data manually
+    const boundary = '----FormBoundary' + Math.random().toString(36).substring(2);
+    const CRLF     = '\r\n';
+
+    const textField = (name, value) =>
+      '--' + boundary + CRLF +
+      'Content-Disposition: form-data; name="' + name + '"' + CRLF +
+      CRLF +
+      value + CRLF;
+
+    const fileField = (name, filename, mime, buffer) => {
+      const header =
+        '--' + boundary + CRLF +
+        'Content-Disposition: form-data; name="' + name + '"; filename="' + filename + '"' + CRLF +
+        'Content-Type: ' + mime + CRLF +
+        CRLF;
+      return Buffer.concat([
+        Buffer.from(header, 'utf8'),
+        buffer,
+        Buffer.from(CRLF, 'utf8'),
+      ]);
+    };
+
+    const closing = Buffer.from('--' + boundary + '--' + CRLF, 'utf8');
+
+    const bodyParts = [
+      Buffer.from(textField('model',   'gpt-image-1'), 'utf8'),
+      Buffer.from(textField('prompt',  editPrompt),    'utf8'),
+      Buffer.from(textField('n',       '1'),           'utf8'),
+      Buffer.from(textField('size',    '1024x1024'),   'utf8'),
+      Buffer.from(textField('quality', 'high'),        'utf8'),
+      fileField('image', fileName, mimeType, imageBuffer),
+      closing,
+    ];
+
+    const bodyBuffer = Buffer.concat(bodyParts);
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + OPENAI_API_KEY,
+        'Content-Type': 'multipart/form-data; boundary=' + boundary,
+        'Content-Length': String(bodyBuffer.length),
       },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: imageGenPrompt,
-        n: 1,
-        size: '1792x1024',
-        quality: 'hd',
-        response_format: 'url',
-      }),
+      body: bodyBuffer,
     });
 
     if (!openaiResponse.ok) {
@@ -105,7 +146,16 @@ export default async function handler(req, res) {
     }
 
     const openaiData = await openaiResponse.json();
-    generatedImageUrl = openaiData.data[0].url;
+
+    // gpt-image-1 returns base64 by default — convert to data URL
+    const imageData = openaiData.data[0];
+    if (imageData.url) {
+      generatedImageUrl = imageData.url;
+    } else if (imageData.b64_json) {
+      generatedImageUrl = 'data:image/png;base64,' + imageData.b64_json;
+    } else {
+      throw new Error('No image data returned from OpenAI');
+    }
 
   } catch (err) {
     console.error('OpenAI call failed:', err);
@@ -114,6 +164,6 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     imageUrl: generatedImageUrl,
-    promptUsed: imageGenPrompt,
+    promptUsed: editPrompt,
   });
 }
