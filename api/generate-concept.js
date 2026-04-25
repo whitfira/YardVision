@@ -2,12 +2,11 @@
 // Yard Vision — Vercel Serverless Function
 // File location in GitHub repo: api/generate-concept.js
 //
-// Uses gpt-image-2 edits endpoint which takes the actual uploaded
-// yard photo as input and modifies it — true photo-based generation
+// Streamlined single-step version — goes direct to gpt-image-2
+// edits endpoint with no Anthropic middle step for speed.
 //
 // Required environment variables (set in Vercel dashboard):
-//   ANTHROPIC_API_KEY   — from console.anthropic.com
-//   OPENAI_API_KEY      — from platform.openai.com
+//   OPENAI_API_KEY — from platform.openai.com
 // ============================================================
 
 export const config = {
@@ -26,94 +25,62 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-  const OPENAI_API_KEY    = process.env.OPENAI_API_KEY;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-  if (!ANTHROPIC_API_KEY || !OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'Server configuration error — API keys not set' });
+  if (!OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Server configuration error — API key not set' });
   }
 
-  // ── STEP 1: Call Anthropic to build a rich edit prompt ──
-  let editPrompt;
-  try {
-    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: imageMediaType || 'image/jpeg',
-                  data: imageBase64,
-                },
-              },
-              {
-                type: 'text',
-                text: 'You are an expert landscape architecture visualization prompt engineer.\n\n'
-                    + 'I am going to show you a photo of a client\'s yard and home. '
-                    + 'Your job is to write a detailed image EDITING prompt for gpt-image-2 '
-                    + 'that will modify this exact photo to show the finished project.\n\n'
-                    + 'CLIENT PROJECT DETAILS:\n'
-                    + '- Project Type: ' + projectType + '\n'
-                    + '- Style Preference: ' + stylePreference + '\n'
-                    + '- Budget Tier: ' + budgetTier + '\n'
-                    + '- Client Description: ' + (description || 'No additional description provided.') + '\n\n'
-                    + 'CRITICAL INSTRUCTIONS — THESE ARE ABSOLUTE RULES, NO EXCEPTIONS:\n'
-                    + '1. This is an IMAGE EDIT. The model will modify the actual uploaded photo directly.\n'
-                    + '2. PRESERVE THE TIME OF DAY EXACTLY. If the photo is daytime, the output MUST be daytime. '
-                    + 'Do NOT change to evening, twilight, dusk, or night under any circumstances — '
-                    + 'even if the project includes fire features, lighting, or anything that might look better at night. '
-                    + 'Strictly match the original time of day and sky brightness.\n'
-                    + '3. PRESERVE THE CAMERA ANGLE AND ZOOM EXACTLY. Do not zoom in, zoom out, crop, '
-                    + 'pan, tilt, or change the framing or focal length in any way. '
-                    + 'The output must show the exact same field of view as the original photo.\n'
-                    + '4. PRESERVE THE LIGHTING CONDITIONS EXACTLY. Match the original color temperature, '
-                    + 'shadow direction, shadow length, and overall brightness. '
-                    + 'Do not add artificial lighting, spotlights, or window glow unless the original photo has them.\n'
-                    + '5. PRESERVE THE HOUSE AND ALL STRUCTURES EXACTLY. The house exterior, roof, windows, '
-                    + 'walls, doors, and all existing structures must look identical to the original photo.\n'
-                    + '6. ONLY describe what should be ADDED or CHANGED in the yard and outdoor space. '
-                    + 'Do not describe the house, sky, or any existing elements.\n'
-                    + '7. Be extremely specific about materials, textures, plant species, and design elements '
-                    + 'authentic to the ' + stylePreference + ' style.\n'
-                    + '8. Scale the project scope and material quality to the ' + budgetTier + ' budget.\n'
-                    + '9. Photorealistic, no people, no text, no watermarks.\n'
-                    + '10. Write as a single concise paragraph under 800 characters. '
-                    + 'Start directly with the edit description — no preamble, no labels.',
-              },
-            ],
-          },
-        ],
-      }),
-    });
-
-    if (!anthropicResponse.ok) {
-      const err = await anthropicResponse.text();
-      console.error('Anthropic API error:', err);
-      return res.status(502).json({ error: 'Failed to generate prompt from Anthropic. Please try again.' });
-    }
-
-    const anthropicData = await anthropicResponse.json();
-    editPrompt = anthropicData.content[0].text.trim();
-    console.log('Edit prompt:', editPrompt);
-
-  } catch (err) {
-    console.error('Anthropic call failed:', err);
-    return res.status(500).json({ error: 'Unexpected error calling Anthropic API.' });
+  // ── Build budget guidance ──
+  let budgetGuidance = '';
+  if (budgetTier === 'Under $25,000') {
+    budgetGuidance = 'Use modest, cost-effective materials such as stamped concrete, basic pavers, simple sod lawn, and native low-maintenance plantings.';
+  } else if (budgetTier === '$25,000 – $50,000') {
+    budgetGuidance = 'Use mid-range materials such as natural pavers, basic pool finishes, decorative concrete, and ornamental shrubs and grasses.';
+  } else if (budgetTier === '$50,000 – $100,000') {
+    budgetGuidance = 'Use quality materials such as travertine or bluestone pavers, tiled pool finishes, built-in seating, and lush ornamental landscaping.';
+  } else if (budgetTier === '$100,000 – $200,000') {
+    budgetGuidance = 'Use premium materials such as natural stone, custom pool features, outdoor kitchen, pergola structures, and full professional landscaping.';
+  } else if (budgetTier === '$200,000+') {
+    budgetGuidance = 'Use luxury materials such as imported stone, custom infinity or geometric pool, full outdoor living pavilion, resort-style landscaping, and high-end water features.';
   }
 
-  // ── STEP 2: Call gpt-image-2 EDITS endpoint with the actual photo ──
+  // ── Build style guidance ──
+  let styleGuidance = '';
+  if (stylePreference === 'Modern / Contemporary') {
+    styleGuidance = 'Clean geometric lines, minimalist planting, concrete and steel accents, rectangular pool shapes, ornamental grasses, and crisp edging.';
+  } else if (stylePreference === 'Traditional / Classic') {
+    styleGuidance = 'Symmetrical layouts, brick or tumbled stone, manicured hedges, classic pool coping, flower beds with roses and perennials.';
+  } else if (stylePreference === 'Tropical / Resort') {
+    styleGuidance = 'Lush tropical plantings, palm trees, freeform pool shape, natural stone, tiki elements, and dense green foliage.';
+  } else if (stylePreference === 'Rustic / Natural') {
+    styleGuidance = 'Natural fieldstone, weathered wood, wildflower meadow plantings, irregular organic shapes, and earthy warm tones.';
+  } else if (stylePreference === 'Mediterranean') {
+    styleGuidance = 'Terracotta tiles, stucco walls, olive trees, lavender, fountain features, arched elements, and warm sandy tones.';
+  } else if (stylePreference === 'Minimalist') {
+    styleGuidance = 'Extremely clean lines, monochromatic palette, sparse planting, large format pavers with wide grout joints, and negative space.';
+  } else if (stylePreference === 'Cottage / English Garden') {
+    styleGuidance = 'Lush mixed flower borders, climbing roses, stone pathways, picket or wrought iron fencing, and abundant colorful plantings.';
+  }
+
+  // ── Build the direct edit prompt ──
+  const editPrompt =
+    'This is a photo of a residential yard. Edit this photo to show the completed landscape project as described below. '
+    + 'STRICT RULES — DO NOT VIOLATE THESE UNDER ANY CIRCUMSTANCES: '
+    + '(1) PRESERVE the exact time of day, lighting, sky brightness, color temperature, and shadow direction from the original photo. If it is daytime, keep it daytime. Do not change to evening, twilight, dusk, or night for any reason. '
+    + '(2) PRESERVE the exact camera angle, zoom level, focal length, framing, and field of view. Do not zoom in or out. Do not crop or reframe. '
+    + '(3) PRESERVE the house exterior, roof, windows, walls, and all existing structures exactly as they appear. '
+    + '(4) PRESERVE the exact perspective and horizon line. '
+    + 'WHAT TO ADD OR CHANGE IN THE YARD ONLY: '
+    + 'Project type: ' + projectType + '. '
+    + 'Style: ' + stylePreference + ' — ' + styleGuidance + ' '
+    + 'Budget level: ' + budgetTier + ' — ' + budgetGuidance + ' '
+    + (description ? 'Additional client details: ' + description + '. ' : '')
+    + 'Result must be photorealistic architectural visualization quality. No people, no text, no watermarks.';
+
+  console.log('Edit prompt:', editPrompt);
+
+  // ── Call gpt-image-2 EDITS endpoint directly ──
   let generatedImageUrl;
   try {
     const imageBuffer = Buffer.from(imageBase64, 'base64');
