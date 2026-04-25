@@ -2,7 +2,7 @@
 // Yard Vision — Vercel Serverless Function
 // File location in GitHub repo: api/generate-concept.js
 //
-// Uses gpt-image-1 edits endpoint which takes the actual uploaded
+// Uses gpt-image-2 edits endpoint which takes the actual uploaded
 // yard photo as input and modifies it — true photo-based generation
 //
 // Required environment variables (set in Vercel dashboard):
@@ -60,7 +60,37 @@ export default async function handler(req, res) {
               },
               {
                 type: 'text',
-                text: 'You are an expert landscape architecture visualization prompt engineer.\n\nI am going to show you a photo of a client\'s yard and home. Your job is to write a detailed image EDITING prompt for gpt-image-2 that will modify this exact photo to show the finished project.\n\nCLIENT PROJECT DETAILS:\n- Project Type: ' + projectType + '\n- Style Preference: ' + stylePreference + '\n- Budget Tier: ' + budgetTier + '\n- Client Description: ' + (description || 'No additional description provided.') + '\n\nCRITICAL INSTRUCTIONS:\n1. This is an IMAGE EDIT — the model will modify the actual uploaded photo directly. Keep the house, structures, camera angle, sky, and all existing elements IDENTICAL.\n2. Only describe what should be ADDED or CHANGED in the yard area — do not describe the house or existing elements.\n3. Be extremely specific about materials, textures, plant species, and design elements authentic to the ' + stylePreference + ' style.\n4. Scale the project scope to the ' + budgetTier + ' budget.\n5. Photorealistic, no people, no text, no watermarks.\n6. Write as a single concise paragraph under 800 characters. Start directly with the edit description — no preamble.',
+                text: 'You are an expert landscape architecture visualization prompt engineer.\n\n'
+                    + 'I am going to show you a photo of a client\'s yard and home. '
+                    + 'Your job is to write a detailed image EDITING prompt for gpt-image-2 '
+                    + 'that will modify this exact photo to show the finished project.\n\n'
+                    + 'CLIENT PROJECT DETAILS:\n'
+                    + '- Project Type: ' + projectType + '\n'
+                    + '- Style Preference: ' + stylePreference + '\n'
+                    + '- Budget Tier: ' + budgetTier + '\n'
+                    + '- Client Description: ' + (description || 'No additional description provided.') + '\n\n'
+                    + 'CRITICAL INSTRUCTIONS — THESE ARE ABSOLUTE RULES, NO EXCEPTIONS:\n'
+                    + '1. This is an IMAGE EDIT. The model will modify the actual uploaded photo directly.\n'
+                    + '2. PRESERVE THE TIME OF DAY EXACTLY. If the photo is daytime, the output MUST be daytime. '
+                    + 'Do NOT change to evening, twilight, dusk, or night under any circumstances — '
+                    + 'even if the project includes fire features, lighting, or anything that might look better at night. '
+                    + 'Strictly match the original time of day and sky brightness.\n'
+                    + '3. PRESERVE THE CAMERA ANGLE AND ZOOM EXACTLY. Do not zoom in, zoom out, crop, '
+                    + 'pan, tilt, or change the framing or focal length in any way. '
+                    + 'The output must show the exact same field of view as the original photo.\n'
+                    + '4. PRESERVE THE LIGHTING CONDITIONS EXACTLY. Match the original color temperature, '
+                    + 'shadow direction, shadow length, and overall brightness. '
+                    + 'Do not add artificial lighting, spotlights, or window glow unless the original photo has them.\n'
+                    + '5. PRESERVE THE HOUSE AND ALL STRUCTURES EXACTLY. The house exterior, roof, windows, '
+                    + 'walls, doors, and all existing structures must look identical to the original photo.\n'
+                    + '6. ONLY describe what should be ADDED or CHANGED in the yard and outdoor space. '
+                    + 'Do not describe the house, sky, or any existing elements.\n'
+                    + '7. Be extremely specific about materials, textures, plant species, and design elements '
+                    + 'authentic to the ' + stylePreference + ' style.\n'
+                    + '8. Scale the project scope and material quality to the ' + budgetTier + ' budget.\n'
+                    + '9. Photorealistic, no people, no text, no watermarks.\n'
+                    + '10. Write as a single concise paragraph under 800 characters. '
+                    + 'Start directly with the edit description — no preamble, no labels.',
               },
             ],
           },
@@ -83,16 +113,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Unexpected error calling Anthropic API.' });
   }
 
-  // ── STEP 2: Call gpt-image-1 EDITS endpoint with the actual photo ──
+  // ── STEP 2: Call gpt-image-2 EDITS endpoint with the actual photo ──
   let generatedImageUrl;
   try {
-    // Convert base64 to binary buffer for multipart upload
-    const imageBuffer   = Buffer.from(imageBase64, 'base64');
-    const mimeType      = imageMediaType || 'image/jpeg';
-    const extension     = mimeType.split('/')[1] || 'jpg';
-    const fileName      = 'yard.' + extension;
+    const imageBuffer = Buffer.from(imageBase64, 'base64');
+    const mimeType    = imageMediaType || 'image/jpeg';
+    const extension   = mimeType.split('/')[1] || 'jpg';
+    const fileName    = 'yard.' + extension;
 
-    // Build multipart/form-data manually
     const boundary = '----FormBoundary' + Math.random().toString(36).substring(2);
     const CRLF     = '\r\n';
 
@@ -118,7 +146,7 @@ export default async function handler(req, res) {
     const closing = Buffer.from('--' + boundary + '--' + CRLF, 'utf8');
 
     const bodyParts = [
-      Buffer.from(textField('model',   'gpt-image-1'), 'utf8'),
+      Buffer.from(textField('model',   'gpt-image-2'), 'utf8'),
       Buffer.from(textField('prompt',  editPrompt),    'utf8'),
       Buffer.from(textField('n',       '1'),           'utf8'),
       Buffer.from(textField('size',    '1024x1024'),   'utf8'),
@@ -147,7 +175,6 @@ export default async function handler(req, res) {
 
     const openaiData = await openaiResponse.json();
 
-    // gpt-image-1 returns base64 by default — convert to data URL
     const imageData = openaiData.data[0];
     if (imageData.url) {
       generatedImageUrl = imageData.url;
