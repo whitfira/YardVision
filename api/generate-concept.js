@@ -2,11 +2,11 @@
 // Yard Vision — Vercel Serverless Function
 // File location in GitHub repo: api/generate-concept.js
 //
-// Streamlined single-step version — goes direct to gpt-image-2
-// edits endpoint with no Anthropic middle step for speed.
+// Uses fal.ai gpt-image-2 edit endpoint — faster than calling
+// OpenAI directly, with streaming support and 60s compatibility.
 //
 // Required environment variables (set in Vercel dashboard):
-//   OPENAI_API_KEY — from platform.openai.com
+//   FAL_API_KEY — from fal.ai dashboard
 // ============================================================
 
 export const config = {
@@ -25,16 +25,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const FAL_API_KEY = process.env.FAL_API_KEY;
 
-  if (!OPENAI_API_KEY) {
+  if (!FAL_API_KEY) {
     return res.status(500).json({ error: 'Server configuration error — API key not set' });
   }
 
   // ── Build budget guidance ──
   let budgetGuidance = '';
   if (budgetTier === 'Under $25,000') {
-    budgetGuidance = 'Use modest, cost-effective materials such as stamped concrete, basic pavers, simple sod lawn, and native low-maintenance plantings.';
+    budgetGuidance = 'Use modest cost-effective materials such as stamped concrete, basic pavers, simple sod lawn, and native low-maintenance plantings.';
   } else if (budgetTier === '$25,000 – $50,000') {
     budgetGuidance = 'Use mid-range materials such as natural pavers, basic pool finishes, decorative concrete, and ornamental shrubs and grasses.';
   } else if (budgetTier === '$50,000 – $100,000') {
@@ -63,96 +63,62 @@ export default async function handler(req, res) {
     styleGuidance = 'Lush mixed flower borders, climbing roses, stone pathways, picket or wrought iron fencing, and abundant colorful plantings.';
   }
 
-  // ── Build the direct edit prompt ──
+  // ── Build the edit prompt ──
   const editPrompt =
-    'This is a photo of a residential yard. Edit this photo to show the completed landscape project as described below. '
-    + 'STRICT RULES — DO NOT VIOLATE THESE UNDER ANY CIRCUMSTANCES: '
-    + '(1) PRESERVE the exact time of day, lighting, sky brightness, color temperature, and shadow direction from the original photo. If it is daytime, keep it daytime. Do not change to evening, twilight, dusk, or night for any reason. '
+    'Edit this residential yard photo to show the completed landscape project described below. '
+    + 'ABSOLUTE RULES — DO NOT VIOLATE UNDER ANY CIRCUMSTANCES: '
+    + '(1) PRESERVE the exact time of day, sky brightness, lighting, color temperature, and shadow direction. If daytime, keep daytime. Never change to evening, twilight, dusk, or night for any reason. '
     + '(2) PRESERVE the exact camera angle, zoom level, focal length, framing, and field of view. Do not zoom in or out. Do not crop or reframe. '
-    + '(3) PRESERVE the house exterior, roof, windows, walls, and all existing structures exactly as they appear. '
+    + '(3) PRESERVE the house exterior, roof, windows, walls, doors, and all existing structures exactly as they appear — pixel identical. '
     + '(4) PRESERVE the exact perspective and horizon line. '
-    + 'WHAT TO ADD OR CHANGE IN THE YARD ONLY: '
-    + 'Project type: ' + projectType + '. '
+    + 'ONLY CHANGE THE YARD AND OUTDOOR SPACE AS FOLLOWS: '
+    + 'Project: ' + projectType + '. '
     + 'Style: ' + stylePreference + ' — ' + styleGuidance + ' '
-    + 'Budget level: ' + budgetTier + ' — ' + budgetGuidance + ' '
-    + (description ? 'Additional client details: ' + description + '. ' : '')
-    + 'Result must be photorealistic architectural visualization quality. No people, no text, no watermarks.';
+    + 'Budget: ' + budgetTier + ' — ' + budgetGuidance + ' '
+    + (description ? 'Client details: ' + description + '. ' : '')
+    + 'Photorealistic architectural visualization. No people, no text, no watermarks.';
 
   console.log('Edit prompt:', editPrompt);
 
-  // ── Call gpt-image-2 EDITS endpoint directly ──
+  // ── Convert base64 to data URI for fal.ai ──
+  const mimeType    = imageMediaType || 'image/jpeg';
+  const imageDataUri = 'data:' + mimeType + ';base64,' + imageBase64;
+
+  // ── Call fal.ai gpt-image-2 edit endpoint ──
   let generatedImageUrl;
   try {
-    const imageBuffer = Buffer.from(imageBase64, 'base64');
-    const mimeType    = imageMediaType || 'image/jpeg';
-    const extension   = mimeType.split('/')[1] || 'jpg';
-    const fileName    = 'yard.' + extension;
-
-    const boundary = '----FormBoundary' + Math.random().toString(36).substring(2);
-    const CRLF     = '\r\n';
-
-    const textField = (name, value) =>
-      '--' + boundary + CRLF +
-      'Content-Disposition: form-data; name="' + name + '"' + CRLF +
-      CRLF +
-      value + CRLF;
-
-    const fileField = (name, filename, mime, buffer) => {
-      const header =
-        '--' + boundary + CRLF +
-        'Content-Disposition: form-data; name="' + name + '"; filename="' + filename + '"' + CRLF +
-        'Content-Type: ' + mime + CRLF +
-        CRLF;
-      return Buffer.concat([
-        Buffer.from(header, 'utf8'),
-        buffer,
-        Buffer.from(CRLF, 'utf8'),
-      ]);
-    };
-
-    const closing = Buffer.from('--' + boundary + '--' + CRLF, 'utf8');
-
-    const bodyParts = [
-      Buffer.from(textField('model',   'gpt-image-2'), 'utf8'),
-      Buffer.from(textField('prompt',  editPrompt),    'utf8'),
-      Buffer.from(textField('n',       '1'),           'utf8'),
-      Buffer.from(textField('size',    '1024x1024'),   'utf8'),
-      Buffer.from(textField('quality', 'high'),        'utf8'),
-      fileField('image', fileName, mimeType, imageBuffer),
-      closing,
-    ];
-
-    const bodyBuffer = Buffer.concat(bodyParts);
-
-    const openaiResponse = await fetch('https://api.openai.com/v1/images/edits', {
+    const falResponse = await fetch('https://fal.run/fal-ai/openai/gpt-image-2/edit', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + OPENAI_API_KEY,
-        'Content-Type': 'multipart/form-data; boundary=' + boundary,
-        'Content-Length': String(bodyBuffer.length),
+        'Authorization': 'Key ' + FAL_API_KEY,
+        'Content-Type': 'application/json',
       },
-      body: bodyBuffer,
+      body: JSON.stringify({
+        prompt:      editPrompt,
+        image_url:   imageDataUri,
+        image_size:  'auto',
+        quality:     'high',
+        num_images:  1,
+      }),
     });
 
-    if (!openaiResponse.ok) {
-      const err = await openaiResponse.text();
-      console.error('OpenAI API error:', err);
+    if (!falResponse.ok) {
+      const err = await falResponse.text();
+      console.error('fal.ai API error:', err);
       return res.status(502).json({ error: 'Failed to generate concept image. Please try again.' });
     }
 
-    const openaiData = await openaiResponse.json();
+    const falData = await falResponse.json();
+    console.log('fal.ai response:', JSON.stringify(falData));
 
-    const imageData = openaiData.data[0];
-    if (imageData.url) {
-      generatedImageUrl = imageData.url;
-    } else if (imageData.b64_json) {
-      generatedImageUrl = 'data:image/png;base64,' + imageData.b64_json;
+    if (falData.images && falData.images[0] && falData.images[0].url) {
+      generatedImageUrl = falData.images[0].url;
     } else {
-      throw new Error('No image data returned from OpenAI');
+      throw new Error('No image returned from fal.ai');
     }
 
   } catch (err) {
-    console.error('OpenAI call failed:', err);
+    console.error('fal.ai call failed:', err);
     return res.status(500).json({ error: 'Unexpected error calling image generation API.' });
   }
 
