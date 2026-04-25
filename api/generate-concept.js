@@ -87,7 +87,7 @@ export default async function handler(req, res) {
   // ── Call fal.ai gpt-image-2 edit endpoint ──
   let generatedImageUrl;
   try {
-    const falResponse = await fetch('https://fal.run/fal-ai/openai/gpt-image-2/edit', {
+    const falResponse = await fetch('https://fal.run/fal-ai/gpt-image-2/image-to-image', {
       method: 'POST',
       headers: {
         'Authorization': 'Key ' + FAL_API_KEY,
