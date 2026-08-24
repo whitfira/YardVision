@@ -1,22 +1,59 @@
 // ============================================================
-// Yard Vision — Vercel Serverless Function
+// Yard Vision — Vercel Serverless Function (With Database Gatekeeper)
 // File location in GitHub repo: api/generate-concept.js
-//
-// Direct gpt-image-2 edits endpoint — no middleware, one API call.
-// Requires Vercel Pro for 300 second timeout.
-//
-// Required environment variables (set in Vercel dashboard):
-//   OPENAI_API_KEY — from platform.openai.com
 // ============================================================
+
+import { kv } from '@vercel/kv';
 
 export const config = {
   maxDuration: 300,
 };
 
 export default async function handler(req, res) {
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // DOMAIN GATEKEEPER & USAGE TRACKING
+  // ────────────────────────────────────────────────────────────
+  
+  // 1. Get the domain of the website where the app is loaded
+  const referer = req.headers.referer;
+  let domain = 'unknown';
+  
+  if (referer) {
+    try {
+      domain = new URL(referer).hostname.replace('www.', '');
+    } catch (e) {
+      domain = 'unknown';
+    }
+  }
+
+  // 2. Grant your main business website unlimited demo renders automatically
+  const YOUR_MAIN_DOMAIN = 'bizprotool360.com';
+  
+  if (domain !== YOUR_MAIN_DOMAIN && domain !== 'yard-vision-red.vercel.app') {
+    // 3. Fetch contractor subscription data from the free Vercel KV Database
+    const subscription = await kv.get(`contractor:${domain}`);
+
+    // If the domain is not in your database, block them
+    if (!subscription || !subscription.active) {
+      return res.status(403).json({ 
+        error: `Access Denied: ${domain} is not registered. Please contact Yard Vision.` 
+      });
+    }
+
+    // If they hit their monthly tier limit (50 or 150), lock the app automatically
+    if (subscription.used >= subscription.limit) {
+      return res.status(429).json({ 
+        error: "Monthly render limit reached for this website. Please upgrade your tier." 
+      });
+    }
+
+    // 4. Increment their usage counter in the database by +1
+    subscription.used += 1;
+    await kv.set(`contractor:${domain}`, subscription);
   }
 
   const {
