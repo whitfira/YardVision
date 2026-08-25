@@ -4,16 +4,5 @@
       "path": "/api/reset-monthly-usage",
       "schedule": "0 1 1 * *"
     }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *;"
-        }
-      ]
-    }
   ]
 }
