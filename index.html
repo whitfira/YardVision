@@ -79,7 +79,25 @@
       </div>
     </div>
   </nav>
- 
+ <script>
+  // Detect if the page is running inside a contractor's iFrame window
+  if (window.self !== window.top) {
+    document.addEventListener("DOMContentLoaded", function() {
+      // 1. Hide the top main navigation bar layout
+      const navbar = document.querySelector('nav');
+      if (navbar) navbar.style.display = 'none';
+
+      // 2. Hide the mobile dropdown menu layout just in case
+      const mobileMenu = document.getElementById('mobile-menu');
+      if (mobileMenu) mobileMenu.style.display = 'none';
+      
+      // 3. Hide the footer block containing external corporate links at the bottom
+      const footer = document.querySelector('footer');
+      if (footer) footer.style.display = 'none';
+    });
+  }
+</script>
+
   <!-- MAIN -->
   <main class="flex-1 flex flex-col w-full pb-24">
  
