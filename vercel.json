@@ -4,11 +4,5 @@
       "path": "/api/reset-monthly-usage",
       "schedule": "0 1 1 * *"
     }
-  ],
-  "deploymentProtection": {
-    "vercelAuthentication": {
-      "enabled": false
-    }
-  }
+  ]
 }
-
