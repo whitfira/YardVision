@@ -11,7 +11,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://*.bizprotools360.com https://*.google.com;"
+          "value": "frame-ancestors *"
         }
       ]
     }
