@@ -305,12 +305,13 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
   imageBase64: uploadedImageBase64,
-  imageMediaType: uploadedImageBase64.split(';')[0].split(':')[1] || "image/jpeg",
+  imageMediaType: uploadedImageBase64.match(/[^:]\w+\/[\w-+\d.]+(?=;|,)/)?.[0] || "image/jpeg",
   projectType: projectType,
   stylePreference: style,
   budgetTier: budget,
   description: description
 })
+
 
 
 
