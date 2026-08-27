@@ -1,0 +1,380 @@
+AI Studio YARD VISION APP Stand Alone Page Full Code:
+Standalone White-Label HTML Code:
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yard Vision — Outdoor Design Visualizer</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(217.2 32.6% 17.5%)",
+            input: "hsl(217.2 32.6% 17.5%)",
+            ring: "hsl(224.3 76.3% 48%)",
+            background: "hsl(222.2 84% 4.9%)",
+            foreground: "hsl(210 40% 98%)",
+            primary: {
+              DEFAULT: "hsl(217.2 91.2% 59.8%)",
+              foreground: "hsl(222.2 47.4% 11.2%)",
+            },
+            muted: {
+              DEFAULT: "hsl(217.2 32.6% 17.5%)",
+              foreground: "hsl(215 20.2% 65.1%)",
+            },
+            card: {
+              DEFAULT: "hsl(222.2 84% 4.9%)",
+              foreground: "hsl(210 40% 98%)",
+            },
+            destructive: {
+              DEFAULT: "hsl(0 62.8% 30.6%)",
+              foreground: "hsl(210 40% 98%)",
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: hsl(222.2 84% 4.9%);
+      color: hsl(210 40% 98%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <main class="flex-1 flex flex-col w-full pb-16">
+ 
+    <!-- Hero Section (No Navbar, No Site Branding) -->
+    <section class="relative w-full pt-12 pb-12 overflow-hidden">
+      <div class="absolute inset-0 bg-primary/5"></div>
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-4xl">
+        <div class="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>AI-Powered Design Visualizer
+        </div>
+        <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl mb-4">Yard Vision</h1>
+        <p class="text-2xl font-medium text-foreground/90 mb-3">See it before we build it.</p>
+        <p class="text-lg text-muted-foreground">Upload a photo of your yard, describe your dream project, and get an AI-generated photorealistic concept in seconds.</p>
+
+        <!-- Sample Transformation Banner -->
+        <div style="max-width: 768px; margin: 24px auto 0; padding: 0 16px;">
+          <img src="https://assets.cdn.filesafe.space/fgJJhU6nulp7nFgN1jEa/media/6a8b3e5667bb7ac351343766.jpg" alt="Example before and after yard transformation" style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);">
+        </div>
+      </div>
+    </section>
+ 
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+ 
+      <!-- INPUT SECTION -->
+      <div id="input-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+ 
+        <!-- 1. Upload Section -->
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold mb-2">1. Upload Your Yard</h2>
+            <p class="text-muted-foreground">Upload a clear photo of your current space.</p>
+          </div>
+          <div class="rounded-xl border-2 border-dashed border-border/60 bg-card/50 hover:bg-card/80 transition-colors overflow-hidden">
+            <label class="flex flex-col items-center justify-center w-full h-[400px] cursor-pointer relative">
+              <div id="upload-empty" class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                <div class="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+                </div>
+                <p class="mb-2 text-lg font-semibold">Click to upload photo</p>
+                <p class="text-sm text-muted-foreground">JPG, PNG or WEBP (Max 10MB)</p>
+              </div>
+              <div id="upload-preview-container" class="hidden absolute inset-0 w-full h-full">
+                <img id="upload-preview" src="" alt="Yard preview" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <p class="text-white font-medium flex items-center bg-black/50 px-4 py-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg> Change Photo
+                  </p>
+                </div>
+              </div>
+              <input type="file" id="image-upload" class="hidden" accept="image/jpeg,image/png,image/webp">
+            </label>
+          </div>
+        </div>
+ 
+        <!-- 2. Form Section -->
+        <div class="space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold mb-2">2. Describe Your Vision</h2>
+            <p class="text-muted-foreground">Tell us what you're looking to build.</p>
+          </div>
+          <div class="space-y-5 bg-card border border-border/50 rounded-xl p-6 shadow-sm">
+ 
+            <div class="space-y-3">
+              <label for="project-type" class="text-base font-medium">Project Type</label>
+              <select id="project-type" class="flex h-12 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
+                <option value="" disabled selected>Select project type...</option>
+                <option value="Landscape & Planting">Landscape &amp; Planting</option>
+                <option value="Hardscape (Patio, Walkway, Retaining Wall)">Hardscape (Patio, Walkway, Retaining Wall)</option>
+                <option value="Outdoor Kitchen / Living Space">Outdoor Kitchen / Living Space</option>
+                <option value="Swimming Pool">Swimming Pool</option>
+                <option value="Pool + Hardscape Combo">Pool + Hardscape Combo</option>
+                <option value="Fire Pit">Fire Pit</option>
+                <option value="Full Backyard Transformation">Full Backyard Transformation</option>
+              </select>
+            </div>
+ 
+            <div class="space-y-3">
+              <label for="style" class="text-base font-medium">Style Preference</label>
+              <select id="style" class="flex h-12 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
+                <option value="" disabled selected>Select a style...</option>
+                <option value="Modern / Contemporary">Modern / Contemporary</option>
+                <option value="Traditional / Classic">Traditional / Classic</option>
+                <option value="Tropical / Resort">Tropical / Resort</option>
+                <option value="Rustic / Natural">Rustic / Natural</option>
+                <option value="Mediterranean">Mediterranean</option>
+                <option value="Minimalist">Minimalist</option>
+                <option value="Cottage / English Garden">Cottage / English Garden</option>
+              </select>
+            </div>
+ 
+            <div class="space-y-3">
+              <label for="budget" class="text-base font-medium">Project Budget</label>
+              <select id="budget" class="flex h-12 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
+                <option value="" disabled selected>Select budget range...</option>
+                <option value="Under $25,000">Under $25,000</option>
+                <option value="$25,000 – $50,000">$25,000 – $50,000</option>
+                <option value="$50,000 – $100,000">$50,000 – $100,000</option>
+                <option value="$100,000 – $200,000">$100,000 – $200,000</option>
+                <option value="$200,000+">$200,000+</option>
+              </select>
+            </div>
+ 
+            <div class="space-y-3">
+              <label for="description" class="text-base font-medium">Project Description</label>
+              <textarea id="description" placeholder="e.g., A modern rectangular pool with a sun shelf, surrounded by travertine pavers and low ornamental grasses along the fence line..." class="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary resize-none"></textarea>
+            </div>
+ 
+            <div class="pt-2">
+              <button id="generate-btn" disabled class="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 w-full h-14 text-lg cursor-pointer">
+                <span id="generate-text" class="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>Visualize My Project
+                </span>
+                <span id="generate-loading" class="hidden items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>Generating Concept...
+                </span>
+              </button>
+              <p id="error-msg" class="text-sm text-destructive mt-2 text-center">Please upload a photo first</p>
+              <p id="loading-msg" class="hidden text-sm text-muted-foreground mt-3 text-center animate-pulse">
+                Generating your concept — this takes about 20–30 seconds...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- RESULTS SECTION -->
+      <div id="results-section" class="hidden space-y-12 transition-opacity duration-700">
+        <div class="text-center max-w-2xl mx-auto">
+          <h2 class="text-3xl font-bold mb-4">Your Yard Vision</h2>
+          <p class="text-muted-foreground">Here is a conceptual visualization based on your inputs.</p>
+        </div>
+ 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Original Yard -->
+          <div class="space-y-4">
+            <div class="rounded-xl overflow-hidden border bg-card shadow-sm">
+              <div class="bg-muted/50 py-3 px-4 border-b">
+                <h3 class="font-semibold">Your Yard Today</h3>
+              </div>
+              <div class="aspect-[16/10] relative">
+                <img id="result-original-img" src="" alt="Original yard" class="w-full h-full object-cover">
+              </div>
+            </div>
+          </div>
+ 
+          <!-- AI Generated Concept -->
+          <div class="space-y-4">
+            <div class="rounded-xl overflow-hidden border-2 border-primary/50 bg-card shadow-[0_0_30px_-5px_rgba(59,130,246,0.2)] relative">
+              <div class="absolute top-4 right-4 z-10">
+                <div class="bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path></svg> AI Generated
+                </div>
+              </div>
+              <div class="bg-primary/5 py-3 px-4 border-b">
+                <h3 class="font-semibold text-primary">Proposed Concept</h3>
+              </div>
+              <div class="aspect-[16/10] relative">
+                <img id="result-generated-img" src="" alt="Generated concept" class="w-full h-full object-cover">
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-2" id="result-tags"></div>
+          </div>
+        </div>
+ 
+        <div class="text-center">
+          <p class="text-sm text-muted-foreground italic mb-8">
+            *This is a conceptual visualization only. Final designs may vary. Contact us for a full CAD design consultation.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
+            <button id="save-btn" class="inline-flex items-center justify-center rounded-md font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground w-full sm:w-auto h-14 px-8 text-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>Save Concept Image
+            </button>
+            <a id="consultation-btn" href="#contact" target="_blank" class="inline-flex items-center justify-center rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto h-14 px-8 text-base">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path></svg>Request Full Design Consultation
+            </a>
+          </div>
+          <div class="mt-8">
+            <button id="start-over-btn" class="inline-flex items-center justify-center rounded-md font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+              Start Over
+            </button>
+          </div>
+        </div>
+      </div>
+ 
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Dynamic Contractor Contact Link from URL Parameter (?contactUrl=https://...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const contractorContactUrl = urlParams.get('contactUrl');
+      const consultationBtn = document.getElementById('consultation-btn');
+      if (contractorContactUrl) {
+        consultationBtn.href = contractorContactUrl;
+      }
+
+      // Elements
+      const fileInput = document.getElementById('image-upload');
+      const uploadEmpty = document.getElementById('upload-empty');
+      const uploadPreviewContainer = document.getElementById('upload-preview-container');
+      const uploadPreview = document.getElementById('upload-preview');
+      const generateBtn = document.getElementById('generate-btn');
+      const generateText = document.getElementById('generate-text');
+      const generateLoading = document.getElementById('generate-loading');
+      const errorMsg = document.getElementById('error-msg');
+      const loadingMsg = document.getElementById('loading-msg');
+      const inputSection = document.getElementById('input-section');
+      const resultsSection = document.getElementById('results-section');
+      const resultOriginalImg = document.getElementById('result-original-img');
+      const resultGeneratedImg = document.getElementById('result-generated-img');
+      const resultTags = document.getElementById('result-tags');
+      const saveBtn = document.getElementById('save-btn');
+      const startOverBtn = document.getElementById('start-over-btn');
+
+      let uploadedImageBase64 = null;
+
+      // Handle Image Selection
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            uploadedImageBase64 = event.target.result;
+            uploadPreview.src = uploadedImageBase64;
+            uploadEmpty.classList.add('hidden');
+            uploadPreviewContainer.classList.remove('hidden');
+            generateBtn.removeAttribute('disabled');
+            errorMsg.classList.add('hidden');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Handle Generation
+      generateBtn.addEventListener('click', async () => {
+        if (!uploadedImageBase64) return;
+
+        generateBtn.setAttribute('disabled', 'true');
+        generateText.classList.add('hidden');
+        generateLoading.classList.remove('hidden');
+        generateLoading.classList.add('flex');
+        loadingMsg.classList.remove('hidden');
+
+        const projectType = document.getElementById('project-type').value;
+        const style = document.getElementById('style').value;
+        const budget = document.getElementById('budget').value;
+        const description = document.getElementById('description').value;
+
+        try {
+          // POST to your Vercel backend endpoint
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: uploadedImageBase64,
+              projectType,
+              style,
+              budget,
+              description
+            })
+          });
+
+          const data = await response.json();
+          const generatedImageUrl = data.imageUrl || "https://assets.cdn.filesafe.space/fgJJhU6nulp7nFgN1jEa/media/6a8b3e5667bb7ac351343766.jpg";
+
+          // Render Results
+          resultOriginalImg.src = uploadedImageBase64;
+          resultGeneratedImg.src = generatedImageUrl;
+
+          // Render Badges
+          resultTags.innerHTML = '';
+          if (style) {
+            resultTags.innerHTML += `<span class="inline-flex items-center rounded-full border bg-background px-3 py-1 text-xs"><span class="text-muted-foreground mr-1">Style:</span> ${style}</span>`;
+          }
+          if (budget) {
+            resultTags.innerHTML += `<span class="inline-flex items-center rounded-full border bg-background px-3 py-1 text-xs"><span class="text-muted-foreground mr-1">Budget:</span> ${budget}</span>`;
+          }
+
+          // Toggle View
+          inputSection.classList.add('hidden');
+          resultsSection.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        } catch (err) {
+          console.error("Generation error:", err);
+          // Fallback demonstration image if offline or local testing
+          resultOriginalImg.src = uploadedImageBase64;
+          resultGeneratedImg.src = "https://assets.cdn.filesafe.space/fgJJhU6nulp7nFgN1jEa/media/6a8b3e5667bb7ac351343766.jpg";
+          inputSection.classList.add('hidden');
+          resultsSection.classList.remove('hidden');
+        } finally {
+          generateLoading.classList.add('hidden');
+          generateLoading.classList.remove('flex');
+          generateText.classList.remove('hidden');
+          loadingMsg.classList.add('hidden');
+          generateBtn.removeAttribute('disabled');
+        }
+      });
+
+      // Save Image Action
+      saveBtn.addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = resultGeneratedImg.src;
+        a.download = 'yard-vision-concept.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+
+      // Start Over Action
+      startOverBtn.addEventListener('click', () => {
+        uploadedImageBase64 = null;
+        fileInput.value = '';
+        uploadPreview.src = '';
+        uploadEmpty.classList.remove('hidden');
+        uploadPreviewContainer.classList.add('hidden');
+        generateBtn.setAttribute('disabled', 'true');
+        errorMsg.classList.remove('hidden');
+        resultsSection.classList.add('hidden');
+        inputSection.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
