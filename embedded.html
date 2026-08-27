@@ -304,12 +304,13 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              image: uploadedImageBase64,
-              projectType,
-              style,
-              budget,
-              description
-            })
+  imageBase64: uploadedImageBase64,
+  projectType: projectType,
+  stylePreference: style,
+  budgetTier: budget,
+  description: description
+})
+
           });
 
           const data = await response.json();
