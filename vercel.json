@@ -4,11 +4,5 @@
       "path": "/api/reset-monthly-usage",
       "schedule": "0 1 1 * *"
     }
-  ],
-  "api": {
-    "bodyParser": {
-      "sizeLimit": "10mb"
-    },
-    "responseLimit": "10mb"
-  }
+  ]
 }
