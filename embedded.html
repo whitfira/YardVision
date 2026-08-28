@@ -312,13 +312,13 @@ try {
       description: description || 'No additional description provided.'
     })
   });
+  
+  const data = await response.json();
+  // (Your existing layout display logic handles the image here)
 
-
-
-
-          });
-
-          const data = await response.json();
+} catch (error) {
+  console.error("Generation error:", error);
+}
           const generatedImageUrl = data.imageUrl || "https://assets.cdn.filesafe.space/fgJJhU6nulp7nFgN1jEa/media/6a8b3e5667bb7ac351343766.jpg";
 
           // Render Results
