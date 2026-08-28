@@ -404,6 +404,21 @@
       inputSection.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+    // Dynamic Contractor Call-to-Action Link Redirection
+document.addEventListener("DOMContentLoaded", function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const contractorContactUrl = urlParams.get('cta');
+
+  if (contractorContactUrl) {
+    // Finds your 'Request Full Design Consultation' button automatically
+    const contactBtn = document.querySelector('a[href*="pricing"]') || document.querySelector('button[href*="pricing"]');
+    if (contactBtn) {
+      contactBtn.setAttribute('href', contractorContactUrl);
+      contactBtn.setAttribute('target', '_blank'); // Opens their form in a clean new browser tab
+    }
+  }
+});
+
   </script>
 </body>
 </html>
