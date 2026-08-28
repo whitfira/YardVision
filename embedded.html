@@ -293,24 +293,26 @@
         generateLoading.classList.add('flex');
         loadingMsg.classList.remove('hidden');
 
-        const projectType = document.getElementById('project-type').value;
-        const style = document.getElementById('style').value;
-        const budget = document.getElementById('budget').value;
-        const description = document.getElementById('description').value;
+        // Mirroring the exact working variable logic from index.html
+const stylePref = document.getElementById('stylePref')?.value || document.getElementById('style-select')?.value || 'Modern';
+const budgetPref = document.getElementById('budgetPref')?.value || document.getElementById('budget-select')?.value || 'Standard';
+const projectType = document.getElementById('projectType')?.value || document.getElementById('project-select')?.value || 'Pool';
+const description = document.getElementById('description')?.value || '';
 
-        try {
-          // POST to your Vercel backend endpoint
-          const response = await fetch('./api/generate-concept', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-  imageBase64: uploadedImageBase64,
-  imageMediaType: "image/jpeg",
-  projectType: projectType,
-  stylePreference: style,
-  budgetTier: budget,
-  description: description || 'No additional description provided.'
-})
+try {
+  const response = await fetch('./api/generate-concept', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageBase64: uploadedImageBase64,
+      imageMediaType: "image/jpeg",
+      projectType: projectType,
+      stylePreference: stylePref,
+      budgetTier: budgetPref,
+      description: description || 'No additional description provided.'
+    })
+  });
+
 
 
 
