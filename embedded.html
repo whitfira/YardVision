@@ -232,6 +232,40 @@
   </main>
  
   <script>
+    // Dynamic Brand Color Theme Injector
+document.addEventListener("DOMContentLoaded", function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const brandColor = urlParams.get('color');
+
+  if (brandColor) {
+    const colorPalette = {
+      'green': '#10B981',    
+      'charcoal': '#374151', 
+      'red': '#EF4444',      
+      'gold': '#F59E0B',     
+      'black': '#111827'     
+    };
+
+    const targetHex = colorPalette[brandColor.toLowerCase()];
+    
+    if (targetHex) {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .bg-blue-600, .bg-primary, [class*="bg-blue-"], button[type="submit"] { 
+          background-color: ${targetHex} !important; 
+        }
+        .text-blue-600, [class*="text-blue-"] { 
+          color: ${targetHex} !important; 
+        }
+        .border-blue-600, [class*="border-blue-"] { 
+          border-color: ${targetHex} !important; 
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+});
+
     lucide.createIcons();
  
  
