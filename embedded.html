@@ -232,63 +232,6 @@
   </main>
  
   <script>
-    // Dynamic Brand Color Theme Injector (Full Page Re-Skin)
-document.addEventListener("DOMContentLoaded", function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const brandColor = urlParams.get('color');
-
-  if (brandColor) {
-    const colorPalette = {
-      'green': '#10B981',    // Emerald Green
-      'charcoal': '#374151', // Sleek Slate Charcoal
-      'red': '#EF4444',      // Crimson Red
-      'gold': '#F59E0B',     // Luxury Warm Amber
-      'black': '#111827'     // True Onyx Black
-    };
-
-    const targetHex = colorPalette[brandColor.toLowerCase()];
-    
-    if (targetHex) {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        /* 1. Global Accents & Primary Call-to-Action Buttons */
-        .bg-blue-600, .bg-primary, [class*="bg-blue-"], button, a[role="button"], .button { 
-          background-color: ${targetHex} !important; 
-          color: #ffffff !important;
-        }
-        
-        /* 2. Selection Dropdowns, Input Frames, and Focus Rings */
-        select, input, textarea, [role="listbox"] {
-          border-color: ${targetHex} !important;
-        }
-        select:focus, input:focus, textarea:focus {
-          outline: none !important;
-          box-shadow: 0 0 0 2px ${targetHex}33 !important; /* Soft branding glow */
-          border-color: ${targetHex} !important;
-        }
-        
-        /* 3. Global Decorative Highlights, Headers, Text, & Accent Rings */
-        .text-blue-600, [class*="text-blue-"], h1, h2, h3, h4, h5, h6 { 
-          color: ${targetHex} !important; 
-        }
-        
-        /* 4. Custom Subtle Card & Focus Container Borders */
-        .border-blue-600, [class*="border-blue-"], .border-primary { 
-          border-color: ${targetHex} !important; 
-        }
-        
-        /* 5. Custom Scrollbars & Native Browser Highlight Overrides */
-        ::selection {
-          background-color: ${targetHex} !important;
-          color: #ffffff !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-});
-
-
     lucide.createIcons();
  
  
