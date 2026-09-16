@@ -111,7 +111,7 @@ export default async function (req, res) {
 
   console.log('Edit prompt:', editPrompt);
 
-  // ── Build multipart form for gpt-image-2 edits endpoint ──
+  // ── Build multipart form for gpt-image-2.5-sunburst edits endpoint ──
   let generatedImageUrl;
   try {
     const imageBuffer = Buffer.from(imageBase64, 'base64');
@@ -144,11 +144,11 @@ export default async function (req, res) {
     const closing = Buffer.from('--' + boundary + '--' + CRLF, 'utf8');
 
     const bodyParts = [
-      Buffer.from(textField('model',   'gpt-image-2'), 'utf8'),
+      Buffer.from(textField('model',   'gpt-image-2.5-sunburst'), 'utf8'),
       Buffer.from(textField('prompt',  editPrompt),    'utf8'),
       Buffer.from(textField('n',       '1'),           'utf8'),
       Buffer.from(textField('size',    '1024x1024'),   'utf8'),
-      Buffer.from(textField('quality', 'high'),        'utf8'),
+      Buffer.from(textField('quality', 'auto'),        'utf8'),
       fileField('image', fileName, mimeType, imageBuffer),
       closing,
     ];
